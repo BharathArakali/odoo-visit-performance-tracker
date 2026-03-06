@@ -1,6 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 
+    <!-- KANBAN VIEW -->
+    <record id="view_visit_plan_kanban" model="ir.ui.view">
+        <field name="name">visit.plan.kanban</field>
+        <field name="model">visit.plan</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="salesman_id"/>
+                <field name="retailer_id"/>
+                <field name="state"/>
+                <field name="productivity_score"/>
+
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click o_kanban_card">
+                            <strong><field name="name"/></strong>
+                            <div><b>Date:</b> <field name="date"/></div>
+                            <div><b>Salesperson:</b> <field name="salesman_id"/></div>
+                            <div><b>Retailer:</b> <field name="retailer_id"/></div>
+                            <div><b>Productivity:</b> <field name="productivity_score"/> %</div>
+                            <div><b>Status:</b> <field name="state"/></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <!-- LIST VIEW -->
     <record id="view_visit_plan_list" model="ir.ui.view">
         <field name="name">visit.plan.list</field>
@@ -19,7 +48,6 @@
         </field>
     </record>
 
-
     <!-- FORM VIEW -->
     <record id="view_visit_plan_form" model="ir.ui.view">
         <field name="name">visit.plan.form</field>
@@ -33,23 +61,47 @@
                     <button name="action_mark_done"
                             type="object"
                             string="Mark Done"
-                            class="btn-success"/>
+                            class="btn-primary"
+                            invisible="state == 'done'"/>
 
                     <button name="action_mark_missed"
                             type="object"
                             string="Mark Missed"
-                            class="btn-danger"/>
+                            class="btn-danger"
+                            invisible="state == 'missed'"/>
 
                     <button name="action_reset_draft"
                             type="object"
                             string="Reset to Draft"
-                            class="btn-secondary"/>
+                            class="btn-secondary"
+                            invisible="state == 'draft'"/>
 
                     <field name="state" widget="statusbar"/>
 
                 </header>
 
                 <sheet>
+
+                    <!-- SMART BUTTON AREA -->
+                    <div class="oe_button_box" name="button_box">
+
+                        <button name="action_view_retailer_visits"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar">
+
+                            <div class="o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="visit_count"/>
+                                </span>
+                                <span class="o_stat_text">
+                                    Retailer Visits
+                                </span>
+                            </div>
+
+                        </button>
+
+                    </div>
 
                     <group>
                         <field name="name"/>
@@ -66,6 +118,7 @@
                     <group string="Productivity">
                         <field name="productivity_score" readonly="1"/>
                         <field name="is_productive" readonly="1"/>
+                        <field name="visit_count" readonly="1"/>
                     </group>
 
                 </sheet>
@@ -75,61 +128,35 @@
         </field>
     </record>
 
-
     <!-- SEARCH VIEW -->
     <record id="view_visit_plan_search" model="ir.ui.view">
         <field name="name">visit.plan.search</field>
         <field name="model">visit.plan</field>
         <field name="arch" type="xml">
-
             <search string="Search Visit Plans">
-
                 <field name="name"/>
                 <field name="salesman_id"/>
                 <field name="retailer_id"/>
                 <field name="date"/>
-
-                <filter string="Draft"
-                        name="filter_draft"
-                        domain="[('state','=','draft')]"/>
-
-                <filter string="Done"
-                        name="filter_done"
-                        domain="[('state','=','done')]"/>
-
-                <filter string="Missed"
-                        name="filter_missed"
-                        domain="[('state','=','missed')]"/>
-
-                <filter string="Group by Salesperson"
-                        name="group_salesman"
-                        context="{'group_by': 'salesman_id'}"/>
-
-                <filter string="Group by Retailer"
-                        name="group_retailer"
-                        context="{'group_by': 'retailer_id'}"/>
-
-                <filter string="Group by Date"
-                        name="group_date"
-                        context="{'group_by': 'date'}"/>
-
+                <filter string="Draft" name="filter_draft" domain="[('state','=','draft')]"/>
+                <filter string="Done" name="filter_done" domain="[('state','=','done')]"/>
+                <filter string="Missed" name="filter_missed" domain="[('state','=','missed')]"/>
+                <filter string="Group by Salesperson" name="group_salesman" context="{'group_by': 'salesman_id'}"/>
+                <filter string="Group by Retailer" name="group_retailer" context="{'group_by': 'retailer_id'}"/>
+                <filter string="Group by Date" name="group_date" context="{'group_by': 'date'}"/>
             </search>
-
         </field>
     </record>
-
 
     <!-- GRAPH VIEW -->
     <record id="view_visit_plan_graph" model="ir.ui.view">
         <field name="name">visit.plan.graph</field>
         <field name="model">visit.plan</field>
         <field name="arch" type="xml">
-
             <graph string="Visit Productivity" type="bar">
                 <field name="salesman_id" type="row"/>
                 <field name="productivity_score" type="measure"/>
             </graph>
-
         </field>
     </record>
 
@@ -138,7 +165,6 @@
         <field name="name">visit.plan.pivot</field>
         <field name="model">visit.plan</field>
         <field name="arch" type="xml">
-
             <pivot string="Visit Productivity Analysis">
                 <field name="salesman_id" type="row"/>
                 <field name="retailer_id" type="col"/>
@@ -146,7 +172,6 @@
                 <field name="planned_time" type="measure"/>
                 <field name="actual_time" type="measure"/>
             </pivot>
-
         </field>
     </record>
 
@@ -154,19 +179,11 @@
     <record id="action_visit_plan" model="ir.actions.act_window">
         <field name="name">Visit Plans</field>
         <field name="res_model">visit.plan</field>
-        <field name="view_mode">list,form,graph,pivot</field>
+        <field name="view_mode">kanban,list,form,graph,pivot</field>
     </record>
 
-
     <!-- MENUS -->
-    <menuitem id="menu_visit_root"
-              name="Visit Tracker"
-              sequence="10"/>
-
-    <menuitem id="menu_visit_plan"
-              name="Visit Plans"
-              parent="menu_visit_root"
-              action="action_visit_plan"
-              sequence="10"/>
+    <menuitem id="menu_visit_root" name="Visit Tracker" sequence="10"/>
+    <menuitem id="menu_visit_plan" name="Visit Plans" parent="menu_visit_root" action="action_visit_plan" sequence="10"/>
 
 </odoo>

@@ -9,6 +9,10 @@
     'security/ir.model.access.csv',
     'data/sequence.xml',
     'views/visit_plan_views.xml',
+    'views/menu_views.xml',
+],
+    'demo': [
+    'demo/visit_plan_demo.xml',
 ],
     'installable': True,
     'application': True,

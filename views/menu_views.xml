@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Main Menu -->
+    <menuitem
+        id="menu_visit_performance_root"
+        name="Visit Performance"
+        sequence="10"
+    />
+
+    <!-- Visit Plans Menu -->
+    <menuitem
+        id="menu_visit_plan"
+        name="Visit Plans"
+        parent="menu_visit_performance_root"
+        action="action_visit_plan"
+        sequence="1"
+    />
+
+</odoo>

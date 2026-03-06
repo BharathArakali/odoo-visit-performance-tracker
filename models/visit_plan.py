@@ -1,92 +1,47 @@
 from odoo import models, fields, api
 
-
 class VisitPlan(models.Model):
-    _name = "visit.plan"
-    _description = "Visit Plan"
-    _rec_name = "name"
+    _name = 'visit.plan'
+    _description = 'Visit Plan'
 
-    name = fields.Char(
-        string="Reference",
-        required=True,
-        copy=False,
-        default="New"
-    )
+    name = fields.Char(string="Visit Name", required=True)
+    date = fields.Date(string="Visit Date")
+    salesman_id = fields.Many2one('res.users', string="Salesperson")
+    retailer_id = fields.Many2one('res.partner', string="Retailer")
+    planned_time = fields.Float(string="Planned Time (hrs)")
+    actual_time = fields.Float(string="Actual Time (hrs)")
+    productivity_score = fields.Float(string="Productivity Score")
+    is_productive = fields.Boolean(string="Is Productive")
+    state = fields.Selection([
+        ('draft','Draft'),
+        ('done','Done'),
+        ('missed','Missed'),
+    ], default='draft', string="Status")
 
-    date = fields.Date(
-        string="Visit Date",
-        required=True
-    )
+    visit_count = fields.Integer(string='Retailer Visits', compute='_compute_visit_count', store=True)
 
-    salesman_id = fields.Many2one(
-        "res.users",
-        string="Salesperson",
-        required=True,
-        default=lambda self: self.env.user
-    )
+    @api.depends('retailer_id')
+    def _compute_visit_count(self):
+        for record in self:
+            record.visit_count = self.env['visit.plan'].search_count([('retailer_id','=',record.retailer_id.id)])
 
-    retailer_id = fields.Many2one(
-        "res.partner",
-        string="Retailer",
-        required=True,
-    )
+    # Smart button action
+    def action_view_retailer_visits(self):
+        self.ensure_one()
+        return {
+            'name': f"Visits for {self.retailer_id.name}",
+            'type': 'ir.actions.act_window',
+            'res_model': 'visit.plan',
+            'view_mode': 'list,form',
+            'domain': [('retailer_id','=',self.retailer_id.id)],
+        }
 
-    planned_time = fields.Float(
-        string="Planned Duration (Hours)"
-    )
-
-    actual_time = fields.Float(
-        string="Actual Duration (Hours)"
-    )
-
-    state = fields.Selection(
-        [
-            ("draft", "Draft"),
-            ("done", "Done"),
-            ("missed", "Missed"),
-        ],
-        string="Status",
-        default="draft",
-        tracking=True
-    )
-
-    is_productive = fields.Boolean(
-        string="Is Productive",
-        compute="_compute_productivity",
-        store=True
-    )
-
-    productivity_score = fields.Float(
-        string="Productivity (%)",
-        compute="_compute_productivity",
-        store=True
-    )
-
-    @api.depends("planned_time", "actual_time")
-    def _compute_productivity(self):
-        for rec in self:
-            if rec.planned_time > 0:
-                rec.productivity_score = (rec.actual_time / rec.planned_time) * 100
-                rec.is_productive = rec.actual_time >= rec.planned_time
-            else:
-                rec.productivity_score = 0.0
-                rec.is_productive = False
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            if vals.get('name', 'New') == 'New':
-                vals['name'] = self.env['ir.sequence'].next_by_code('visit.plan') or 'New'
-        return super().create(vals_list)
-
+    # Header buttons
     def action_mark_done(self):
-        for rec in self:
-            rec.state = 'done'
+        self.write({'state':'done'})
 
     def action_mark_missed(self):
-        for rec in self:
-            rec.state = 'missed'
+        self.write({'state':'missed'})
 
     def action_reset_draft(self):
-        for rec in self:
-            rec.state = 'draft'
+        self.write({'state':'draft'})
