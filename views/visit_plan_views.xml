@@ -128,6 +128,23 @@
         </field>
     </record>
 
+    <record id="view_visit_plan_calendar" model="ir.ui.view">
+        <field name="name">visit.plan.calendar</field>
+        <field name="model">visit.plan</field>
+        <field name="arch" type="xml">
+            <calendar string="Visit Calendar"
+                      date_start="date"
+                      color="salesman_id">
+
+                <field name="name"/>
+                <field name="retailer_id"/>
+                <field name="salesman_id"/>
+                <field name="state"/>
+
+            </calendar>
+        </field>
+    </record>
+
     <!-- SEARCH VIEW -->
     <record id="view_visit_plan_search" model="ir.ui.view">
         <field name="name">visit.plan.search</field>
@@ -179,7 +196,7 @@
     <record id="action_visit_plan" model="ir.actions.act_window">
         <field name="name">Visit Plans</field>
         <field name="res_model">visit.plan</field>
-        <field name="view_mode">kanban,list,form,graph,pivot</field>
+        <field name="view_mode">kanban,list,form,calendar,graph,pivot</field>
     </record>
 
     <!-- MENUS -->

@@ -1,20 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <data>
 
-    <!-- Main Menu -->
-    <menuitem
-        id="menu_visit_performance_root"
-        name="Visit Performance"
-        sequence="10"
-    />
+        <menuitem id="menu_visit_performance_root"
+                  name="Visit Performance"
+                  sequence="10"/>
 
-    <!-- Visit Plans Menu -->
-    <menuitem
-        id="menu_visit_plan"
-        name="Visit Plans"
-        parent="menu_visit_performance_root"
-        action="action_visit_plan"
-        sequence="1"
-    />
+        <menuitem id="menu_visit_plan"
+                  name="Visit Plans"
+                  parent="menu_visit_performance_root"
+                  action="action_visit_plan"
+                  sequence="1"/>
 
+        <menuitem id="menu_masters_root"
+                  name="Masters"
+                  parent="menu_visit_performance_root"
+                  sequence="2"/>
+
+        <menuitem id="menu_retailers"
+                  name="Retailers"
+                  parent="menu_masters_root"
+                  action="action_retailer"
+                  sequence="1"/>
+
+        <menuitem id="menu_salesmen"
+                  name="Salesmen"
+                  parent="menu_masters_root"
+                  action="action_salesman"
+                  sequence="2"/>
+
+    </data>
 </odoo>

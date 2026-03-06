@@ -1,0 +1,19 @@
+<odoo>
+
+    <record id="cron_mark_missed_visits" model="ir.cron">
+
+        <field name="name">Mark Missed Visits</field>
+
+        <field name="model_id" ref="model_visit_plan"/>
+
+        <field name="state">code</field>
+        <field name="code">model.cron_mark_missed_visits()</field>
+
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+
+        <field name="active">True</field>
+
+    </record>
+
+</odoo>
