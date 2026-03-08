@@ -1,0 +1,33 @@
+<odoo>
+
+    <record id="email_template_missed_visit_summary" model="mail.template">
+        <field name="name">Missed Visit Summary</field>
+        <field name="model_id" ref="model_visit_plan"/>
+        <field name="subject">Missed Visit Summary</field>
+
+        <field name="email_from">${(user.email or '')}</field>
+        <field name="email_to">${object.manager_email}</field>
+
+        <field name="body_html" type="html">
+            <![CDATA[
+            <p>Hello Manager,</p>
+
+            <p>The following visit was missed:</p>
+
+            <ul>
+                <li>
+                <strong>Employee:</strong> ${object.employee_id.name}<br/>
+                <strong>Date:</strong> ${object.visit_date}<br/>
+                <strong>Location:</strong> ${object.location}
+                </li>
+            </ul>
+
+            <p>Please review the record.</p>
+
+            <p>Regards,<br/>Odoo System</p>
+            ]]>
+        </field>
+
+    </record>
+
+</odoo>
