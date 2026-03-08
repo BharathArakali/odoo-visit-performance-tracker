@@ -1,8 +1,9 @@
 import logging
+import urllib.parse
 _logger = logging.getLogger(__name__)
 
 from odoo import models, fields, api
-from datetime import date
+from datetime import date, timedelta
 
 
 class VisitPlan(models.Model):
@@ -135,6 +136,53 @@ class VisitPlan(models.Model):
                 _logger.error("Failed to send missed visit email: %s", str(e))
 
         _logger.info("=== Cron Job Completed ===")
+
+    # ------------------------------------------------
+    # Google Calendar Link Generator
+    # ------------------------------------------------
+    def action_add_to_google_calendar(self):
+        self.ensure_one()
+
+        # Build event details
+        title = f"Visit: {self.name}"
+        if self.retailer_id:
+            title += f" - {self.retailer_id.name}"
+
+        description = (
+            f"Visit Reference: {self.name}\n"
+            f"Salesperson: {self.salesman_id.name if self.salesman_id else 'N/A'}\n"
+            f"Retailer: {self.retailer_id.name if self.retailer_id else 'N/A'}\n"
+            f"Planned Duration: {self.planned_time} hrs\n"
+            f"Productivity Score: {round(self.productivity_score, 2)}%"
+        )
+
+        # Format dates for Google Calendar (YYYYMMDD)
+        if self.date:
+            start_date = self.date.strftime('%Y%m%d')
+            # End date = next day (Google Calendar all-day event)
+            end_date = (self.date + timedelta(days=1)).strftime('%Y%m%d')
+        else:
+            from datetime import datetime
+            start_date = datetime.now().strftime('%Y%m%d')
+            end_date = (datetime.now() + timedelta(days=1)).strftime('%Y%m%d')
+
+        # Build Google Calendar URL
+        params = urllib.parse.urlencode({
+            'action': 'TEMPLATE',
+            'text': title,
+            'dates': f"{start_date}/{end_date}",
+            'details': description,
+            'location': self.retailer_id.name if self.retailer_id else '',
+        })
+
+        google_calendar_url = f"https://calendar.google.com/calendar/render?{params}"
+
+        # Open URL in new browser tab
+        return {
+            'type': 'ir.actions.act_url',
+            'url': google_calendar_url,
+            'target': 'new',
+        }
 
 
 # ------------------------------------------------

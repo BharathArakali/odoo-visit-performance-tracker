@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="visit_performance_tracker.Dashboard">
+        <div class="o_visit_dashboard">
+
+            <!-- Header -->
+            <div class="vd-header">
+                <div class="vd-header-left">
+                    <div class="vd-header-icon">📍</div>
+                    <div>
+                        <h1 class="vd-title">Visit Performance</h1>
+                        <p class="vd-subtitle">Real-time overview of salesman visits and productivity</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="vd-kpi-grid">
+
+                <div class="vd-kpi-card vd-kpi-blue" t-on-click="viewAll">
+                    <div class="vd-kpi-icon">🗂️</div>
+                    <div class="vd-kpi-value"><t t-esc="state.totalVisits"/></div>
+                    <div class="vd-kpi-label">Total Visits</div>
+                    <div class="vd-kpi-hint">Click to view all</div>
+                </div>
+
+                <div class="vd-kpi-card vd-kpi-green" t-on-click="viewDone">
+                    <div class="vd-kpi-icon">✅</div>
+                    <div class="vd-kpi-value"><t t-esc="state.totalDone"/></div>
+                    <div class="vd-kpi-label">Completed</div>
+                    <div class="vd-kpi-hint">Click to view</div>
+                </div>
+
+                <div class="vd-kpi-card vd-kpi-red" t-on-click="viewMissed">
+                    <div class="vd-kpi-icon">⚠️</div>
+                    <div class="vd-kpi-value"><t t-esc="state.totalMissed"/></div>
+                    <div class="vd-kpi-label">Missed</div>
+                    <div class="vd-kpi-hint">Click to view</div>
+                </div>
+
+                <div class="vd-kpi-card vd-kpi-grey" t-on-click="viewDraft">
+                    <div class="vd-kpi-icon">📝</div>
+                    <div class="vd-kpi-value"><t t-esc="state.totalDraft"/></div>
+                    <div class="vd-kpi-label">Pending</div>
+                    <div class="vd-kpi-hint">Click to view</div>
+                </div>
+
+                <div class="vd-kpi-card vd-kpi-orange">
+                    <div class="vd-kpi-icon">📈</div>
+                    <div class="vd-kpi-value"><t t-esc="state.avgProductivity"/>%</div>
+                    <div class="vd-kpi-label">Avg Productivity</div>
+                    <div class="vd-kpi-hint">Across all visits</div>
+                </div>
+
+            </div>
+
+            <!-- Charts -->
+            <div class="vd-charts-grid">
+
+                <!-- Visits by State -->
+                <div class="vd-chart-card">
+                    <div class="vd-chart-header">
+                        <span class="vd-chart-title">Visits by State</span>
+                        <span class="vd-chart-badge"><t t-esc="state.totalVisits"/> total</span>
+                    </div>
+                    <div class="vd-chart-body">
+                        <t t-foreach="state.stateStats" t-as="stat" t-key="stat.label">
+                            <div class="vd-bar-row">
+                                <div class="vd-bar-meta">
+                                    <span class="vd-bar-dot" t-attf-style="background: #{stat.color}"/>
+                                    <span class="vd-bar-label"><t t-esc="stat.label"/></span>
+                                    <span class="vd-bar-count"><t t-esc="stat.count"/></span>
+                                </div>
+                                <div class="vd-bar-track">
+                                    <div class="vd-bar-fill"
+                                         t-attf-style="width: #{getBarWidth(stat.count)}%; background: #{stat.color};"/>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Productivity per Salesman -->
+                <div class="vd-chart-card">
+                    <div class="vd-chart-header">
+                        <span class="vd-chart-title">Productivity per Salesman</span>
+                        <span class="vd-chart-badge">ranked</span>
+                    </div>
+                    <div class="vd-chart-body">
+                        <t t-if="state.salesmanStats.length === 0">
+                            <div class="vd-empty">No data available</div>
+                        </t>
+                        <t t-foreach="state.salesmanStats" t-as="s" t-key="s.name">
+                            <div class="vd-bar-row">
+                                <div class="vd-bar-meta">
+                                    <span class="vd-bar-rank"><t t-esc="s_index + 1"/></span>
+                                    <span class="vd-bar-label"><t t-esc="s.name"/></span>
+                                    <span class="vd-bar-count"><t t-esc="s.avg"/>%</span>
+                                </div>
+                                <div class="vd-bar-track">
+                                    <div class="vd-bar-fill vd-bar-blue"
+                                         t-attf-style="width: #{getSalesmanBarWidth(s.avg)}%;"/>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </t>
+
+</templates>

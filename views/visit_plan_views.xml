@@ -14,14 +14,12 @@
                     <field name="retailer_id"/>
                     <field name="state"/>
                     <field name="productivity_score"/>
-
                     <templates>
                         <t t-name="card">
                             <div t-attf-class="oe_kanban_global_click o_kanban_card rounded-3 p-3
                                 #{record.state.raw_value == 'done' and 'bg-success-subtle border border-success' or ''}
                                 #{record.state.raw_value == 'missed' and 'bg-danger-subtle border border-danger' or ''}
                                 #{record.state.raw_value == 'draft' and 'bg-secondary-subtle border border-secondary' or ''}">
-
                                 <strong><field name="name"/></strong>
                                 <div><b>Date:</b> <field name="date"/></div>
                                 <div><b>Salesperson:</b> <field name="salesman_id"/></div>
@@ -34,7 +32,6 @@
                 </kanban>
             </field>
         </record>
-
 
         <!-- LIST VIEW -->
         <record id="view_visit_plan_list" model="ir.ui.view">
@@ -59,11 +56,8 @@
             <field name="name">visit.plan.form</field>
             <field name="model">visit.plan</field>
             <field name="arch" type="xml">
-
                 <form string="Visit Plan">
-
                     <header>
-
                         <button name="action_send_missed_visit_email"
                                 type="object"
                                 string="Send Missed Visits Email"
@@ -87,12 +81,16 @@
                                 class="btn-secondary"
                                 invisible="state == 'draft'"/>
 
-                        <field name="state" widget="statusbar"/>
+                        <!-- Google Calendar Button -->
+                        <button name="action_add_to_google_calendar"
+                                type="object"
+                                string="📅 Add to Google Calendar"
+                                class="btn-info"/>
 
+                        <field name="state" widget="statusbar"/>
                     </header>
 
                     <sheet>
-
                         <group>
                             <field name="name"/>
                             <field name="date"/>
@@ -110,9 +108,10 @@
                             <field name="is_productive" readonly="1"/>
                             <field name="visit_count" readonly="1"/>
                         </group>
-
                     </sheet>
+
                     <chatter/>
+
                 </form>
             </field>
         </record>
@@ -131,7 +130,6 @@
             </field>
         </record>
 
-
         <!-- SEARCH VIEW -->
         <record id="view_visit_plan_search" model="ir.ui.view">
             <field name="name">visit.plan.search</field>
@@ -142,10 +140,16 @@
                     <field name="salesman_id"/>
                     <field name="retailer_id"/>
                     <field name="date"/>
+                    <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                    <filter string="Done" name="done" domain="[('state','=','done')]"/>
+                    <filter string="Missed" name="missed" domain="[('state','=','missed')]"/>
+                    <separator/>
+                    <filter string="Salesperson" name="group_salesman" context="{'group_by': 'salesman_id'}"/>
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'date'}"/>
                 </search>
             </field>
         </record>
-
 
         <!-- GRAPH VIEW -->
         <record id="view_visit_plan_graph" model="ir.ui.view">
@@ -159,7 +163,6 @@
             </field>
         </record>
 
-
         <!-- PIVOT VIEW -->
         <record id="view_visit_plan_pivot" model="ir.ui.view">
             <field name="name">visit.plan.pivot</field>
@@ -172,7 +175,6 @@
                 </pivot>
             </field>
         </record>
-
 
         <!-- ACTION -->
         <record id="action_visit_plan" model="ir.actions.act_window">

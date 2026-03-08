@@ -4,19 +4,27 @@
     'summary': 'Smart Visit Planning & Performance Tracking',
     'description': 'Tracks planned, actual, missed visits and productivity.',
     'author': 'Your Company',
-    'depends': ['base', 'mail', 'contacts'],
+    'depends': ['base', 'mail', 'contacts', 'web'],
     'data': [
         'security/ir.model.access.csv',
         'security/record_rules.xml',
         'data/sequence.xml',
         'data/email_template.xml',
         'data/visit_cron.xml',
-        'reports/visit_report.xml',         # <-- added
+        'reports/visit_report.xml',
         'views/visit_plan_views.xml',
         'views/retailer_views.xml',
         'views/salesman_views.xml',
+        'views/dashboard_views.xml',
         'views/menu_views.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'visit_performance_tracker/static/src/css/dashboard.css',
+            'visit_performance_tracker/static/src/js/dashboard.js',
+            'visit_performance_tracker/static/src/xml/dashboard.xml',
+        ],
+    },
     'demo': [
         'demo/visit_plan_demo.xml',
     ],

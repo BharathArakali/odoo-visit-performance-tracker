@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <!-- Dashboard Client Action -->
+        <record id="action_visit_dashboard" model="ir.actions.client">
+            <field name="name">Dashboard</field>
+            <field name="tag">visit_performance_tracker.dashboard</field>
+        </record>
+
+        <!-- Dashboard Menu Item -->
+        <menuitem id="menu_visit_dashboard"
+                  name="Dashboard"
+                  parent="menu_visit_performance_root"
+                  action="action_visit_dashboard"
+                  sequence="0"/>
+
+    </data>
+</odoo>
