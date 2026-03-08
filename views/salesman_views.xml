@@ -2,23 +2,48 @@
 <odoo>
     <data>
 
-        <!-- Salesman List View -->
+        <!-- Extend res.users form to add smart button -->
+        <record id="view_res_users_visit_button" model="ir.ui.view">
+            <field name="name">res.users.visit.button</field>
+            <field name="model">res.users</field>
+            <field name="inherit_id" ref="base.view_users_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                    <button class="oe_stat_button"
+                            type="object"
+                            name="action_view_salesman_visits"
+                            icon="fa-map-marker">
+                        <field string="Visits" name="salesman_visit_count" widget="statinfo"/>
+                    </button>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Action: view visits of this salesman -->
+        <record id="action_salesman_visits" model="ir.actions.act_window">
+            <field name="name">Visits</field>
+            <field name="res_model">visit.plan</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('salesman_id', '=', active_id)]</field>
+        </record>
+
+        <!-- Salesman list view under Masters menu -->
         <record id="view_salesman_list" model="ir.ui.view">
             <field name="name">salesman.list</field>
-            <field name="model">visit.plan</field>
+            <field name="model">res.users</field>
             <field name="arch" type="xml">
-                <list>
-                    <field name="salesman_id"/>
-                    <field name="date"/>
-                    <field name="state"/>
+                <list string="Salesmen">
+                    <field name="name"/>
+                    <field name="email"/>
+                    <field name="salesman_visit_count" string="Total Visits"/>
                 </list>
             </field>
         </record>
 
-        <!-- Salesman Action -->
+        <!-- Action for Masters > Salesmen menu -->
         <record id="action_salesman" model="ir.actions.act_window">
             <field name="name">Salesmen</field>
-            <field name="res_model">visit.plan</field>
+            <field name="res_model">res.users</field>
             <field name="view_mode">list,form</field>
         </record>
 

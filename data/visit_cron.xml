@@ -1,25 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <data>
+    <data noupdate="1">
 
         <record id="cron_check_missed_visits" model="ir.cron">
-            <field name="name">Check Missed Visits</field>
-
+            <field name="name">Check Missed Visits Daily</field>
             <field name="model_id" ref="model_visit_plan"/>
-
             <field name="state">code</field>
 
-            <field name="code">
-model.action_send_missed_visit_email()
-            </field>
+            <!-- Calls the correct cron method in visit_plan.py -->
+            <field name="code">model.cron_mark_missed_visits()</field>
 
+            <!-- Run every 1 day -->
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
 
-            <field name="numbercall">-1</field>
+            <!-- Next run: today at 11:59 PM -->
+            <field name="nextcall" eval="datetime.now().strftime('%Y-%m-%d') + ' 23:59:00'"/>
 
             <field name="active">True</field>
-
         </record>
 
     </data>

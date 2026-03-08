@@ -2,13 +2,13 @@ import logging
 _logger = logging.getLogger(__name__)
 
 from odoo import models, fields, api
-from odoo.exceptions import UserError
 from datetime import date
+
 
 class VisitPlan(models.Model):
     _name = 'visit.plan'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Visit Plan'
-    _inherit = ['mail.thread', 'mail.activity.mixin']   # <-- added for chatter
 
     name = fields.Char(string="Visit Reference", required=True, copy=False, default='New')
     date = fields.Date(tracking=True)
@@ -28,34 +28,6 @@ class VisitPlan(models.Model):
         ('missed', 'Missed')
     ], default='draft', tracking=True)
 
-    def action_send_missed_visit_email(self):
-
-        today = date.today()
-
-        missed_visits = self.search([
-            ('visit_date', '<', today),
-            ('state', '!=', 'done')
-        ])
-
-        template = self.env.ref('visit_plan.email_template_missed_visit_summary')
-
-        for visit in missed_visits:
-            template.send_mail(visit.id, force_send=True)
-
-    def cron_mark_missed_visits(self):
-        _logger.info("Cron job started: Checking for missed visits")
-
-        visits = self.search([
-            ('state', '=', 'draft'),
-            ('date', '<', fields.Date.today())
-        ])
-
-        _logger.info("Found %s visits to mark as missed: %s", len(visits), visits.ids)
-
-        visits.write({'state': 'missed'})
-
-        _logger.info("Cron completed: Missed visits updated")
-
     visit_count = fields.Integer(string="Retailer Visits", compute="_compute_visit_count")
 
     @api.model_create_multi
@@ -72,20 +44,18 @@ class VisitPlan(models.Model):
                 rec.productivity_score = (rec.actual_time / rec.planned_time) * 100
             else:
                 rec.productivity_score = 0
-
             rec.is_productive = rec.productivity_score >= 70
 
     def action_mark_done(self):
         for rec in self:
             rec.state = 'done'
-
             if rec.productivity_score < 70:
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
                     'params': {
                         'title': 'Underperforming Visit',
-                        'message': f'Productivity is only {round(rec.productivity_score,2)}%. Please review the visit.',
+                        'message': f'Productivity is only {round(rec.productivity_score, 2)}%. Please review the visit.',
                         'type': 'warning',
                         'sticky': False,
                     }
@@ -107,7 +77,6 @@ class VisitPlan(models.Model):
 
     def action_view_retailer_visits(self):
         self.ensure_one()
-
         return {
             'name': 'Retailer Visits',
             'type': 'ir.actions.act_window',
@@ -117,3 +86,110 @@ class VisitPlan(models.Model):
             'context': {'create': False},
         }
 
+    # ------------------------------------------------
+    # Button: Send Missed Visit Email (manual trigger)
+    # ------------------------------------------------
+    def action_send_missed_visit_email(self):
+        today = date.today()
+        missed_visits = self.search([
+            ('date', '<', today),
+            ('state', '!=', 'done')
+        ])
+        template = self.env.ref('visit_performance_tracker.email_template_missed_visit_summary')
+        for visit in missed_visits:
+            template.send_mail(visit.id, force_send=True)
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Missed Visits Email',
+                'message': f'{len(missed_visits)} missed visit emails sent!',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+    # ------------------------------------------------
+    # Cron: Runs daily at 11:59 PM
+    # ------------------------------------------------
+    def cron_mark_missed_visits(self):
+        _logger.info("=== Cron Job Started: Checking for missed visits ===")
+        today = fields.Date.today()
+
+        visits = self.search([
+            ('state', '=', 'draft'),
+            ('date', '<', today)
+        ])
+
+        _logger.info("Found %s visit(s) to mark as missed: %s", len(visits), visits.mapped('name'))
+        visits.write({'state': 'missed'})
+        _logger.info("Successfully marked %s visit(s) as missed.", len(visits))
+
+        if visits:
+            try:
+                template = self.env.ref('visit_performance_tracker.email_template_missed_visit_summary')
+                for visit in visits:
+                    template.send_mail(visit.id, force_send=True)
+                _logger.info("Summary email sent for %s missed visit(s).", len(visits))
+            except Exception as e:
+                _logger.error("Failed to send missed visit email: %s", str(e))
+
+        _logger.info("=== Cron Job Completed ===")
+
+
+# ------------------------------------------------
+# Extend res.users for Salesman smart button
+# ------------------------------------------------
+class ResUsers(models.Model):
+    _inherit = 'res.users'
+
+    salesman_visit_count = fields.Integer(
+        string="Visit Count",
+        compute="_compute_salesman_visit_count"
+    )
+
+    def _compute_salesman_visit_count(self):
+        for user in self:
+            user.salesman_visit_count = self.env['visit.plan'].search_count([
+                ('salesman_id', '=', user.id)
+            ])
+
+    def action_view_salesman_visits(self):
+        self.ensure_one()
+        return {
+            'name': 'Visits',
+            'type': 'ir.actions.act_window',
+            'res_model': 'visit.plan',
+            'view_mode': 'list,form',
+            'domain': [('salesman_id', '=', self.id)],
+            'context': {'default_salesman_id': self.id},
+        }
+
+
+# ------------------------------------------------
+# Extend res.partner for Retailer smart button
+# ------------------------------------------------
+class ResPartner(models.Model):
+    _inherit = 'res.partner'
+
+    retailer_visit_count = fields.Integer(
+        string="Visit Count",
+        compute="_compute_retailer_visit_count"
+    )
+
+    def _compute_retailer_visit_count(self):
+        for partner in self:
+            partner.retailer_visit_count = self.env['visit.plan'].search_count([
+                ('retailer_id', '=', partner.id)
+            ])
+
+    def action_view_retailer_visits(self):
+        self.ensure_one()
+        return {
+            'name': 'Visits',
+            'type': 'ir.actions.act_window',
+            'res_model': 'visit.plan',
+            'view_mode': 'list,form',
+            'domain': [('retailer_id', '=', self.id)],
+            'context': {'default_retailer_id': self.id},
+        }

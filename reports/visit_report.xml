@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <!-- ========================================
+             REPORT ACTION (Print button)
+             ======================================== -->
+        <record id="action_report_visit_plan" model="ir.actions.report">
+            <field name="name">Visit Performance Report</field>
+            <field name="model">visit.plan</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">visit_performance_tracker.report_visit_plan_template</field>
+            <field name="report_file">visit_performance_tracker.report_visit_plan_template</field>
+            <field name="binding_model_id" ref="model_visit_plan"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- ========================================
+             QWEB REPORT TEMPLATE
+             ======================================== -->
+        <template id="report_visit_plan_template">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="doc">
+                    <t t-call="web.external_layout">
+                        <div class="page">
+
+                            <!-- Report Title -->
+                            <div style="text-align: center; margin-bottom: 20px;">
+                                <h2>Visit Performance Report</h2>
+                                <p style="color: #666;">
+                                    Generated on: <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y %H:%M')"/>
+                                </p>
+                            </div>
+
+                            <!-- Visit Info Table -->
+                            <table class="table table-sm table-bordered" style="width: 100%; margin-bottom: 20px;">
+                                <thead style="background-color: #f5f5f5;">
+                                    <tr>
+                                        <th>Visit Reference</th>
+                                        <th>Date</th>
+                                        <th>Salesperson</th>
+                                        <th>Retailer</th>
+                                        <th>Planned (hrs)</th>
+                                        <th>Actual (hrs)</th>
+                                        <th>Productivity %</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><t t-esc="doc.name"/></td>
+                                        <td><t t-esc="doc.date"/></td>
+                                        <td><t t-esc="doc.salesman_id.name or 'N/A'"/></td>
+                                        <td><t t-esc="doc.retailer_id.name or 'N/A'"/></td>
+                                        <td><t t-esc="doc.planned_time"/></td>
+                                        <td><t t-esc="doc.actual_time"/></td>
+                                        <td><t t-esc="round(doc.productivity_score, 2)"/>%</td>
+                                        <td><t t-esc="doc.state.upper()"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <!-- Summary Section -->
+                            <div style="margin-top: 20px; padding: 10px; background-color: #f9f9f9; border: 1px solid #ddd;">
+                                <h4>Summary</h4>
+                                <table style="width: 50%;">
+                                    <tr>
+                                        <td><strong>Total Planned Time:</strong></td>
+                                        <td><t t-esc="doc.planned_time"/> hrs</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total Actual Time:</strong></td>
+                                        <td><t t-esc="doc.actual_time"/> hrs</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Productivity Score:</strong></td>
+                                        <td><t t-esc="round(doc.productivity_score, 2)"/>%</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Is Productive:</strong></td>
+                                        <td><t t-if="doc.is_productive">Yes</t><t t-else="">No</t></td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+
+    </data>
+</odoo>

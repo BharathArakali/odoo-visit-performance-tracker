@@ -54,7 +54,6 @@
             </field>
         </record>
 
-
         <!-- FORM VIEW -->
         <record id="view_visit_plan_form" model="ir.ui.view">
             <field name="name">visit.plan.form</field>
@@ -67,8 +66,8 @@
 
                         <button name="action_send_missed_visit_email"
                                 type="object"
-                                string="Send Missed Visit Email"
-                                class="btn-primary"/>
+                                string="Send Missed Visits Email"
+                                class="oe_highlight"/>
 
                         <button name="action_mark_done"
                                 type="object"
@@ -113,12 +112,10 @@
                         </group>
 
                     </sheet>
-
+                    <chatter/>
                 </form>
-
             </field>
         </record>
-
 
         <!-- CALENDAR VIEW -->
         <record id="view_visit_plan_calendar" model="ir.ui.view">
@@ -184,5 +181,5 @@
             <field name="view_mode">kanban,list,form,calendar,graph,pivot</field>
         </record>
 
-</data>
+    </data>
 </odoo>
