@@ -1,17 +1,20 @@
+import logging
+_logger = logging.getLogger(__name__)
+
 from odoo import models, fields, api
 from odoo.exceptions import UserError
-import logging
-
-_logger = logging.getLogger(__name__)
+from datetime import date
 
 class VisitPlan(models.Model):
     _name = 'visit.plan'
     _description = 'Visit Plan'
+    _inherit = ['mail.thread', 'mail.activity.mixin']   # <-- added for chatter
 
-    name = fields.Char(required=True)
-    date = fields.Date()
-    salesman_id = fields.Many2one('res.users', string="Salesperson")
-    retailer_id = fields.Many2one('res.partner', string="Retailer")
+    name = fields.Char(string="Visit Reference", required=True, copy=False, default='New')
+    date = fields.Date(tracking=True)
+    salesman_id = fields.Many2one('res.users', string="Salesperson", tracking=True)
+    retailer_id = fields.Many2one('res.partner', string="Retailer", tracking=True)
+    manager_email = fields.Char(string="Manager Email")
 
     planned_time = fields.Float(string="Planned Time")
     actual_time = fields.Float(string="Actual Time")
@@ -23,7 +26,21 @@ class VisitPlan(models.Model):
         ('draft', 'Draft'),
         ('done', 'Done'),
         ('missed', 'Missed')
-    ], default='draft')
+    ], default='draft', tracking=True)
+
+    def action_send_missed_visit_email(self):
+
+        today = date.today()
+
+        missed_visits = self.search([
+            ('visit_date', '<', today),
+            ('state', '!=', 'done')
+        ])
+
+        template = self.env.ref('visit_plan.email_template_missed_visit_summary')
+
+        for visit in missed_visits:
+            template.send_mail(visit.id, force_send=True)
 
     def cron_mark_missed_visits(self):
         _logger.info("Cron job started: Checking for missed visits")
@@ -33,13 +50,20 @@ class VisitPlan(models.Model):
             ('date', '<', fields.Date.today())
         ])
 
-        _logger.info("Found %s visits to mark as missed", len(visits))
+        _logger.info("Found %s visits to mark as missed: %s", len(visits), visits.ids)
 
         visits.write({'state': 'missed'})
 
-        _logger.info("Missed visits updated successfully")
+        _logger.info("Cron completed: Missed visits updated")
 
     visit_count = fields.Integer(string="Retailer Visits", compute="_compute_visit_count")
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('name', 'New') == 'New':
+                vals['name'] = self.env['ir.sequence'].next_by_code('visit.plan') or 'New'
+        return super().create(vals_list)
 
     @api.depends('planned_time', 'actual_time')
     def _compute_productivity(self):

@@ -1,19 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <data>
 
-    <record id="cron_mark_missed_visits" model="ir.cron">
+        <record id="cron_check_missed_visits" model="ir.cron">
+            <field name="name">Check Missed Visits</field>
 
-        <field name="name">Mark Missed Visits</field>
+            <field name="model_id" ref="model_visit_plan"/>
 
-        <field name="model_id" ref="model_visit_plan"/>
+            <field name="state">code</field>
 
-        <field name="state">code</field>
-        <field name="code">model.cron_mark_missed_visits()</field>
+            <field name="code">
+model.action_send_missed_visit_email()
+            </field>
 
-        <field name="interval_number">1</field>
-        <field name="interval_type">days</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
 
-        <field name="active">True</field>
+            <field name="numbercall">-1</field>
 
-    </record>
+            <field name="active">True</field>
 
+        </record>
+
+    </data>
 </odoo>
